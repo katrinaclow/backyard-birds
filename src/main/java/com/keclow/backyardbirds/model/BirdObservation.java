@@ -47,6 +47,11 @@ public class BirdObservation {
     @Column(nullable = false)
     private Integer count;
 
+    /** Type of food in the bird feeder */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "food_type_id")
+    private FoodType foodType;
+
     /** Duration of the observation period in minutes */
     @Column(name = "duration_minutes")
     private Integer durationMinutes;

@@ -37,7 +37,7 @@ public class BirdTaxonomy {
 
     /** Taxonomic family classification */
     @Column(length = 50, nullable = false)
-    private String family;
+    private String family; //TODO: find out why some don't have name or nullable
 
     /** General bird group classification (e.g., songbirds, waterfowl) */
     @Column(name = "species_group", length = 50)
