@@ -29,9 +29,6 @@ class BirdObservationTest {
         observation.setWeather(weather);
         observation.setObservationDateTime(observationTime);
         observation.setCount(2);
-        observation.setDurationMinutes(15);
-        observation.setSex("male");
-        observation.setAge("adult");
         observation.setBehavior("feeding");
         observation.setIsCompleteChecklist(true);
         observation.setNotes("Test notes");
@@ -42,9 +39,6 @@ class BirdObservationTest {
         assertThat(observation.getWeather()).isEqualTo(weather);
         assertThat(observation.getObservationDateTime()).isEqualTo(observationTime);
         assertThat(observation.getCount()).isEqualTo(2);
-        assertThat(observation.getDurationMinutes()).isEqualTo(15);
-        assertThat(observation.getSex()).isEqualTo("male");
-        assertThat(observation.getAge()).isEqualTo("adult");
         assertThat(observation.getBehavior()).isEqualTo("feeding");
         assertThat(observation.getIsCompleteChecklist()).isTrue();
         assertThat(observation.getNotes()).isEqualTo("Test notes");
@@ -79,9 +73,6 @@ class BirdObservationTest {
         observation.setWeather(null);
         observation.setObservationDateTime(null);
         observation.setCount(null);
-        observation.setDurationMinutes(null);
-        observation.setSex(null);
-        observation.setAge(null);
         observation.setBehavior(null);
         observation.setIsCompleteChecklist(null);
         observation.setNotes(null);
@@ -92,9 +83,6 @@ class BirdObservationTest {
         assertThat(observation.getWeather()).isNull();
         assertThat(observation.getObservationDateTime()).isNull();
         assertThat(observation.getCount()).isNull();
-        assertThat(observation.getDurationMinutes()).isNull();
-        assertThat(observation.getSex()).isNull();
-        assertThat(observation.getAge()).isNull();
         assertThat(observation.getBehavior()).isNull();
         assertThat(observation.getIsCompleteChecklist()).isNull();
         assertThat(observation.getNotes()).isNull();

@@ -52,18 +52,6 @@ public class BirdObservation {
     @JoinColumn(name = "food_type_id")
     private FoodType foodType;
 
-    /** Duration of the observation period in minutes */
-    @Column(name = "duration_minutes")
-    private Integer durationMinutes;
-
-    /** Sex of the observed bird(s) (male, female, unknown) */
-    @Column(length = 20)
-    private String sex;
-
-    /** Age category of the observed bird(s) (adult, juvenile, unknown) */
-    @Column(length = 20)
-    private String age;
-
     /** Observed behavior description */
     private String behavior;
 
