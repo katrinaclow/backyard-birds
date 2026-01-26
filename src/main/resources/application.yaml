@@ -4,3 +4,7 @@ ktor:
       - ca.backyardbirds.ApplicationKt.module
   deployment:
     port: 8080
+
+ebird:
+  apiKey: ${EBIRD_API_KEY:""} # Use environment variable
+  baseUrl: "https://api.ebird.org/v2"
