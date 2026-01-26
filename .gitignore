@@ -34,3 +34,7 @@ logs/
 *.swp
 *.swo
 *~
+
+# Environment files
+.env
+
