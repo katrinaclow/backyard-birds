@@ -1,0 +1,8 @@
+{
+  "recommendations": [
+    "fwcd.kotlin",
+    "mathiasfrohlich.kotlin",
+    "vscjava.vscode-gradle",
+    "ms-vscode.vscode-typescript-next"
+  ]
+}
