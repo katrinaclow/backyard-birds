@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm")
+    kotlin("jvm") version "2.3.0"
     application
     id("io.ktor.plugin") version "3.4.0"
 }
