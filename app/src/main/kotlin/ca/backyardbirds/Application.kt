@@ -1,10 +1,7 @@
 package ca.backyardbirds
 
-<<<<<<< HEAD
+
 import ca.backyardbirds.core.network.HttpClientFactory
-=======
-import ca.backyardbirds.core.network.createHttpClient
->>>>>>> 7be9ec698cf2f7d0ddbdb5edc4ab1fc2b73c4622
 import ca.backyardbirds.data.obs.ObservationRepositoryImpl
 import io.github.cdimascio.dotenv.dotenv
 import io.ktor.server.application.*
@@ -21,11 +18,7 @@ fun main() {
 }
 
 fun Application.module() {
-<<<<<<< HEAD
     val httpClient = HttpClientFactory().create()
-=======
-    val httpClient = createHttpClient()
->>>>>>> 7be9ec698cf2f7d0ddbdb5edc4ab1fc2b73c4622
     val observationRepository = ObservationRepositoryImpl(
         apiKey = ebirdApiKey,
         client = httpClient
