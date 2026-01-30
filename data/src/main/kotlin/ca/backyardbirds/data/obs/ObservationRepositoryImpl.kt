@@ -1,6 +1,5 @@
 package ca.backyardbirds.data.obs
 
-import ca.backyardbirds.core.network.ApiClient
 import ca.backyardbirds.core.network.NetworkResponse
 import ca.backyardbirds.data.obs.dto.ObservationDto
 import ca.backyardbirds.data.obs.dto.toDomain
@@ -9,13 +8,13 @@ import ca.backyardbirds.domain.repository.ObservationRepository
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
+import io.ktor.client.*
 
 class ObservationRepositoryImpl(
     private val apiKey: String,
+    private val client: HttpClient,
     private val baseUrl: String = "https://api.ebird.org/v2"
 ) : ObservationRepository {
-
-    private val client = ApiClient.client
 
     override suspend fun getRecentObservations(regionCode: String): List<Observation> =
         fetchObservations("$baseUrl/data/obs/$regionCode/recent")

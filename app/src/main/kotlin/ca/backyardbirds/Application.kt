@@ -1,5 +1,7 @@
 package ca.backyardbirds
 
+import ca.backyardbirds.core.network.HttpClientFactory
+import ca.backyardbirds.data.obs.ObservationRepositoryImpl
 import io.github.cdimascio.dotenv.dotenv
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
@@ -15,6 +17,11 @@ fun main() {
 }
 
 fun Application.module() {
+    val httpClient = HttpClientFactory().create()
+    val observationRepository = ObservationRepositoryImpl(
+        apiKey = ebirdApiKey,
+        client = httpClient
+    )
     routing {
         get("/") {
             call.respondText("Backyard Birds API is running!")
