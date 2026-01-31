@@ -16,4 +16,6 @@ dependencies {
     implementation("io.ktor:ktor-serialization-kotlinx-json:3.4.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
     testImplementation("org.jetbrains.kotlin:kotlin-test")
+    testImplementation("io.ktor:ktor-client-mock:3.4.0")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0")
 }

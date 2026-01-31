@@ -3,8 +3,11 @@ package ca.backyardbirds
 
 import ca.backyardbirds.core.network.HttpClientFactory
 import ca.backyardbirds.data.obs.ObservationRepositoryImpl
+import ca.backyardbirds.routes.observationRoutes
 import io.github.cdimascio.dotenv.dotenv
+import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
+import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.response.*
@@ -18,11 +21,16 @@ fun main() {
 }
 
 fun Application.module() {
+    install(ContentNegotiation) {
+        json()
+    }
+
     val httpClient = HttpClientFactory().create()
     val observationRepository = ObservationRepositoryImpl(
         apiKey = ebirdApiKey,
         client = httpClient
     )
+
     routing {
         get("/") {
             call.respondText("Backyard Birds API is running!")
@@ -31,5 +39,7 @@ fun Application.module() {
         get("/health") {
             call.respondText("OK")
         }
+
+        observationRoutes(observationRepository, observationRepository)
     }
 }

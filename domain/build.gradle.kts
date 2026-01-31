@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm") version "2.3.0"
+    kotlin("plugin.serialization") version "2.3.0"
 }
 
 kotlin {
@@ -7,6 +8,6 @@ kotlin {
 }
 
 dependencies {
-    // Add domain logic dependencies here
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.0")
     testImplementation("org.jetbrains.kotlin:kotlin-test")
 }
