@@ -67,12 +67,20 @@ class ObservationDtoTest {
     }
 
     @Test
-    fun toDomain_parsesObservationDate_correctly() {
-        // TODO: Replace with additional date strings from real eBird responses
-        // (grab from https://ebird-api-ui.com/ — the "obsDt" field)
+    fun toDomain_parsesObservationDate_withTime() {
         val dto = sampleDto(observationDate = "2021-06-15 09:00")
         val observation = dto.toDomain()
 
         assertEquals(LocalDateTime.of(2021, 6, 15, 9, 0), observation.observationDate)
+    }
+
+    @Test
+    fun toDomain_parsesObservationDate_dateOnly() {
+        // eBird omits the time component when the observer didn't record one.
+        // The mapper falls back to midnight for these entries.
+        val dto = sampleDto(observationDate = "2026-01-28")
+        val observation = dto.toDomain()
+
+        assertEquals(LocalDateTime.of(2026, 1, 28, 0, 0), observation.observationDate)
     }
 }

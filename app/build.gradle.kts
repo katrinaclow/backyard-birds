@@ -9,6 +9,10 @@ application {
     mainClass.set("ca.backyardbirds.ApplicationKt")
 }
 
+tasks.named<JavaExec>("run") {
+    workingDir = rootProject.projectDir
+}
+
 kotlin {
     jvmToolchain(21)
 }

@@ -28,7 +28,7 @@ private suspend fun RoutingCall.respondWithObservations(result: DomainResult<Lis
     }
 }
 
-fun Routing.observationRoutes(
+fun Route.observationRoutes(
     regionRepo: RegionObservationRepository,
     nearbyRepo: NearbyObservationRepository
 ) {

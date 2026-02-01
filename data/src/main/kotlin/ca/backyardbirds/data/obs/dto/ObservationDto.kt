@@ -1,5 +1,6 @@
 package ca.backyardbirds.data.obs.dto
 
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import kotlinx.serialization.SerialName
@@ -30,7 +31,10 @@ fun ObservationDto.toDomain(): Observation = Observation(
     scientificName = scientificName,
     locationId = locationId,
     locationName = locationName,
-    observationDate = LocalDateTime.parse(observationDate, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")),
+    observationDate = if (observationDate.length > 10)
+        LocalDateTime.parse(observationDate, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
+    else
+        LocalDate.parse(observationDate).atStartOfDay(),
     howMany = howMany,
     latitude = latitude,
     longitude = longitude,
