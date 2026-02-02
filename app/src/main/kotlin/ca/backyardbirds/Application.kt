@@ -1,9 +1,20 @@
 package ca.backyardbirds
 
-
 import ca.backyardbirds.core.network.HttpClientFactory
+import ca.backyardbirds.data.checklist.ChecklistRepositoryImpl
+import ca.backyardbirds.data.hotspot.HotspotRepositoryImpl
 import ca.backyardbirds.data.obs.ObservationRepositoryImpl
+import ca.backyardbirds.data.region.RegionRepositoryImpl
+import ca.backyardbirds.data.specieslist.SpeciesListRepositoryImpl
+import ca.backyardbirds.data.statistics.StatisticsRepositoryImpl
+import ca.backyardbirds.data.taxonomy.TaxonomyRepositoryImpl
+import ca.backyardbirds.routes.checklistRoutes
+import ca.backyardbirds.routes.hotspotRoutes
 import ca.backyardbirds.routes.observationRoutes
+import ca.backyardbirds.routes.regionRoutes
+import ca.backyardbirds.routes.speciesListRoutes
+import ca.backyardbirds.routes.statisticsRoutes
+import ca.backyardbirds.routes.taxonomyRoutes
 import io.github.cdimascio.dotenv.dotenv
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
@@ -26,7 +37,33 @@ fun Application.module() {
     }
 
     val httpClient = HttpClientFactory().create()
+
+    // Repository instances
     val observationRepository = ObservationRepositoryImpl(
+        apiKey = ebirdApiKey,
+        client = httpClient
+    )
+    val taxonomyRepository = TaxonomyRepositoryImpl(
+        apiKey = ebirdApiKey,
+        client = httpClient
+    )
+    val regionRepository = RegionRepositoryImpl(
+        apiKey = ebirdApiKey,
+        client = httpClient
+    )
+    val hotspotRepository = HotspotRepositoryImpl(
+        apiKey = ebirdApiKey,
+        client = httpClient
+    )
+    val speciesListRepository = SpeciesListRepositoryImpl(
+        apiKey = ebirdApiKey,
+        client = httpClient
+    )
+    val statisticsRepository = StatisticsRepositoryImpl(
+        apiKey = ebirdApiKey,
+        client = httpClient
+    )
+    val checklistRepository = ChecklistRepositoryImpl(
         apiKey = ebirdApiKey,
         client = httpClient
     )
@@ -40,6 +77,13 @@ fun Application.module() {
             call.respondText("OK")
         }
 
+        // Register all routes
         observationRoutes(observationRepository, observationRepository)
+        taxonomyRoutes(taxonomyRepository)
+        regionRoutes(regionRepository)
+        hotspotRoutes(hotspotRepository)
+        speciesListRoutes(speciesListRepository)
+        statisticsRoutes(statisticsRepository)
+        checklistRoutes(checklistRepository)
     }
 }
