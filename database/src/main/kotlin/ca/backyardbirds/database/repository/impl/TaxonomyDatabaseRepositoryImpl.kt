@@ -80,6 +80,10 @@ class TaxonomyDatabaseRepositoryImpl(
         DomainResult.Failure("Failed to get taxonomy entry: ${e.message}", e)
     }
 
+    override suspend fun count(): Long = dbQuery {
+        TaxonomyTable.selectAll().count()
+    }
+
     private suspend fun <T> dbQuery(block: suspend () -> T): T =
         newSuspendedTransaction(Dispatchers.IO, database) { block() }
 }

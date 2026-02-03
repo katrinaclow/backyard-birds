@@ -12,4 +12,6 @@ interface TaxonomyDatabaseRepository {
     ): DomainResult<List<TaxonomyEntry>>
 
     suspend fun getTaxonomyEntry(speciesCode: String): DomainResult<TaxonomyEntry?>
+
+    suspend fun count(): Long
 }

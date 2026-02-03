@@ -18,6 +18,8 @@ import ca.backyardbirds.data.taxonomy.TaxonomyRepositoryImpl
 import ca.backyardbirds.database.DatabaseFactory
 import ca.backyardbirds.database.FlywayMigration
 import ca.backyardbirds.database.repository.impl.*
+import ca.backyardbirds.database.seeder.DatabaseSeeder
+import kotlinx.coroutines.runBlocking
 import ca.backyardbirds.routes.checklistRoutes
 import ca.backyardbirds.routes.hotspotRoutes
 import ca.backyardbirds.routes.observationRoutes
@@ -26,6 +28,7 @@ import ca.backyardbirds.routes.speciesListRoutes
 import ca.backyardbirds.routes.statisticsRoutes
 import ca.backyardbirds.routes.taxonomyRoutes
 import io.github.cdimascio.dotenv.dotenv
+import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.contentnegotiation.*
@@ -33,6 +36,13 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class HealthResponse(
+    val status: String,
+    val database: String
+)
 
 val dotenv = dotenv { ignoreIfMissing = true }
 val ebirdApiKey = dotenv["EBIRD_API_KEY"] ?: System.getenv("EBIRD_API_KEY")
@@ -104,6 +114,16 @@ fun Application.module() {
         client = httpClient
     )
 
+    // Seed reference data if needed
+    runBlocking {
+        DatabaseSeeder(
+            taxonomyApiRepo = taxonomyApiRepo,
+            regionApiRepo = regionApiRepo,
+            taxonomyDbRepo = taxonomyDbRepo,
+            regionDbRepo = regionDbRepo
+        ).seedIfEmpty()
+    }
+
     // Caching repository instances (decorators)
     val observationRepository = CachingObservationRepository(
         apiRepository = observationApiRepo,
@@ -148,7 +168,13 @@ fun Application.module() {
         }
 
         get("/health") {
-            call.respondText("OK")
+            val dbHealthy = DatabaseFactory.isHealthy()
+            val response = HealthResponse(
+                status = if (dbHealthy) "healthy" else "degraded",
+                database = if (dbHealthy) "connected" else "disconnected"
+            )
+            val statusCode = if (dbHealthy) HttpStatusCode.OK else HttpStatusCode.ServiceUnavailable
+            call.respond(statusCode, response)
         }
 
         // Register all routes

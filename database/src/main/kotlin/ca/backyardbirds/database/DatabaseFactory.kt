@@ -34,4 +34,16 @@ object DatabaseFactory {
         dataSource?.close()
         dataSource = null
     }
+
+    fun isHealthy(): Boolean {
+        return try {
+            dataSource?.connection?.use { conn ->
+                conn.createStatement().use { stmt ->
+                    stmt.executeQuery("SELECT 1").next()
+                }
+            } ?: false
+        } catch (e: Exception) {
+            false
+        }
+    }
 }

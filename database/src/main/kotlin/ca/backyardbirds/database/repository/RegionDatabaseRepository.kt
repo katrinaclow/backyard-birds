@@ -16,4 +16,6 @@ interface RegionDatabaseRepository {
     suspend fun saveAdjacentRegions(regionCode: String, adjacentRegions: List<Region>): DomainResult<Unit>
 
     suspend fun getAdjacentRegions(regionCode: String): DomainResult<List<Region>>
+
+    suspend fun count(): Long
 }

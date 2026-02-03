@@ -132,6 +132,10 @@ class RegionDatabaseRepositoryImpl(
         DomainResult.Failure("Failed to get adjacent regions: ${e.message}", e)
     }
 
+    override suspend fun count(): Long = dbQuery {
+        RegionsTable.selectAll().count()
+    }
+
     private suspend fun <T> dbQuery(block: suspend () -> T): T =
         newSuspendedTransaction(Dispatchers.IO, database) { block() }
 }
