@@ -10,6 +10,7 @@ kotlin {
 dependencies {
     implementation(project(":core"))
     implementation(project(":domain"))
+    implementation(project(":database"))
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.cio)
     implementation(libs.ktor.client.content.negotiation)

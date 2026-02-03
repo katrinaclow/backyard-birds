@@ -1,13 +1,23 @@
 package ca.backyardbirds
 
 import ca.backyardbirds.core.network.HttpClientFactory
+import ca.backyardbirds.data.checklist.CachingChecklistRepository
 import ca.backyardbirds.data.checklist.ChecklistRepositoryImpl
+import ca.backyardbirds.data.hotspot.CachingHotspotRepository
 import ca.backyardbirds.data.hotspot.HotspotRepositoryImpl
+import ca.backyardbirds.data.obs.CachingObservationRepository
 import ca.backyardbirds.data.obs.ObservationRepositoryImpl
+import ca.backyardbirds.data.region.CachingRegionRepository
 import ca.backyardbirds.data.region.RegionRepositoryImpl
+import ca.backyardbirds.data.specieslist.CachingSpeciesListRepository
 import ca.backyardbirds.data.specieslist.SpeciesListRepositoryImpl
+import ca.backyardbirds.data.statistics.CachingStatisticsRepository
 import ca.backyardbirds.data.statistics.StatisticsRepositoryImpl
+import ca.backyardbirds.data.taxonomy.CachingTaxonomyRepository
 import ca.backyardbirds.data.taxonomy.TaxonomyRepositoryImpl
+import ca.backyardbirds.database.DatabaseFactory
+import ca.backyardbirds.database.FlywayMigration
+import ca.backyardbirds.database.repository.impl.*
 import ca.backyardbirds.routes.checklistRoutes
 import ca.backyardbirds.routes.hotspotRoutes
 import ca.backyardbirds.routes.observationRoutes
@@ -36,36 +46,100 @@ fun Application.module() {
         json()
     }
 
+    // Database initialization
+    val dbUrl = dotenv["DB_URL"] ?: System.getenv("DB_URL") ?: "jdbc:postgresql://localhost:5432/ebird"
+    val dbUser = dotenv["DB_USER"] ?: System.getenv("DB_USER") ?: "katrinaclow"
+    val dbPassword = dotenv["DB_PASSWORD"] ?: System.getenv("DB_PASSWORD") ?: ""
+
+    val database = DatabaseFactory.create(
+        url = dbUrl,
+        user = dbUser,
+        password = dbPassword
+    )
+
+    // Run Flyway migrations
+    DatabaseFactory.getDataSource()?.let { dataSource ->
+        FlywayMigration.run(dataSource)
+    }
+
     val httpClient = HttpClientFactory().create()
 
-    // Repository instances
-    val observationRepository = ObservationRepositoryImpl(
+    // Database repository instances
+    val cacheMetadataRepo = CacheMetadataRepositoryImpl(database)
+    val observationDbRepo = ObservationDatabaseRepositoryImpl(database)
+    val hotspotDbRepo = HotspotDatabaseRepositoryImpl(database)
+    val regionDbRepo = RegionDatabaseRepositoryImpl(database)
+    val taxonomyDbRepo = TaxonomyDatabaseRepositoryImpl(database)
+    val checklistDbRepo = ChecklistDatabaseRepositoryImpl(database)
+    val statisticsDbRepo = StatisticsDatabaseRepositoryImpl(database)
+    val speciesListDbRepo = SpeciesListDatabaseRepositoryImpl(database)
+
+    // API repository instances
+    val observationApiRepo = ObservationRepositoryImpl(
         apiKey = ebirdApiKey,
         client = httpClient
     )
-    val taxonomyRepository = TaxonomyRepositoryImpl(
+    val taxonomyApiRepo = TaxonomyRepositoryImpl(
         apiKey = ebirdApiKey,
         client = httpClient
     )
-    val regionRepository = RegionRepositoryImpl(
+    val regionApiRepo = RegionRepositoryImpl(
         apiKey = ebirdApiKey,
         client = httpClient
     )
-    val hotspotRepository = HotspotRepositoryImpl(
+    val hotspotApiRepo = HotspotRepositoryImpl(
         apiKey = ebirdApiKey,
         client = httpClient
     )
-    val speciesListRepository = SpeciesListRepositoryImpl(
+    val speciesListApiRepo = SpeciesListRepositoryImpl(
         apiKey = ebirdApiKey,
         client = httpClient
     )
-    val statisticsRepository = StatisticsRepositoryImpl(
+    val statisticsApiRepo = StatisticsRepositoryImpl(
         apiKey = ebirdApiKey,
         client = httpClient
     )
-    val checklistRepository = ChecklistRepositoryImpl(
+    val checklistApiRepo = ChecklistRepositoryImpl(
         apiKey = ebirdApiKey,
         client = httpClient
+    )
+
+    // Caching repository instances (decorators)
+    val observationRepository = CachingObservationRepository(
+        apiRepository = observationApiRepo,
+        nearbyApiRepository = observationApiRepo,
+        dbRepository = observationDbRepo,
+        cacheMetadata = cacheMetadataRepo
+    )
+    val taxonomyRepository = CachingTaxonomyRepository(
+        apiRepository = taxonomyApiRepo,
+        dbRepository = taxonomyDbRepo,
+        cacheMetadata = cacheMetadataRepo
+    )
+    val regionRepository = CachingRegionRepository(
+        apiRepository = regionApiRepo,
+        dbRepository = regionDbRepo,
+        cacheMetadata = cacheMetadataRepo
+    )
+    val hotspotRepository = CachingHotspotRepository(
+        apiRepository = hotspotApiRepo,
+        dbRepository = hotspotDbRepo,
+        cacheMetadata = cacheMetadataRepo
+    )
+    val speciesListRepository = CachingSpeciesListRepository(
+        apiRepository = speciesListApiRepo,
+        dbRepository = speciesListDbRepo,
+        cacheMetadata = cacheMetadataRepo
+    )
+    val statisticsRepository = CachingStatisticsRepository(
+        apiRepository = statisticsApiRepo,
+        dbRepository = statisticsDbRepo,
+        cacheMetadata = cacheMetadataRepo
+    )
+    val checklistRepository = CachingChecklistRepository(
+        apiRepository = checklistApiRepo,
+        dbRepository = checklistDbRepo,
+        cacheMetadata = cacheMetadataRepo
     )
 
     routing {
