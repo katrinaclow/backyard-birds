@@ -1,14 +1,11 @@
 package ca.backyardbirds.routes
 
+import ca.backyardbirds.domain.model.ApiError
 import ca.backyardbirds.domain.model.DomainResult
 import ca.backyardbirds.domain.repository.ChecklistRepository
 import io.ktor.http.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.serialization.Serializable
-
-@Serializable
-private data class ChecklistErrorResponse(val error: String)
 
 fun Route.checklistRoutes(checklistRepo: ChecklistRepository) {
     route("/api/checklists") {
@@ -20,7 +17,7 @@ fun Route.checklistRoutes(checklistRepo: ChecklistRepository) {
                 is DomainResult.Success -> call.respond(HttpStatusCode.OK, result.data)
                 is DomainResult.Failure -> call.respond(
                     HttpStatusCode.InternalServerError,
-                    ChecklistErrorResponse(result.message)
+                    ApiError(result.message)
                 )
             }
         }
@@ -33,7 +30,7 @@ fun Route.checklistRoutes(checklistRepo: ChecklistRepository) {
             val maxResults = call.request.queryParameters["maxResults"]?.toIntOrNull()
 
             if (year == null || month == null || day == null) {
-                call.respond(HttpStatusCode.BadRequest, ChecklistErrorResponse("year, month, and day must be valid integers"))
+                call.respond(HttpStatusCode.BadRequest, ApiError("year, month, and day must be valid integers"))
                 return@get
             }
 
@@ -41,7 +38,7 @@ fun Route.checklistRoutes(checklistRepo: ChecklistRepository) {
                 is DomainResult.Success -> call.respond(HttpStatusCode.OK, result.data)
                 is DomainResult.Failure -> call.respond(
                     HttpStatusCode.InternalServerError,
-                    ChecklistErrorResponse(result.message)
+                    ApiError(result.message)
                 )
             }
         }
@@ -53,7 +50,7 @@ fun Route.checklistRoutes(checklistRepo: ChecklistRepository) {
                 is DomainResult.Success -> call.respond(HttpStatusCode.OK, result.data)
                 is DomainResult.Failure -> call.respond(
                     HttpStatusCode.InternalServerError,
-                    ChecklistErrorResponse(result.message)
+                    ApiError(result.message)
                 )
             }
         }

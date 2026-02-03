@@ -1,14 +1,11 @@
 package ca.backyardbirds.routes
 
+import ca.backyardbirds.domain.model.ApiError
 import ca.backyardbirds.domain.model.DomainResult
 import ca.backyardbirds.domain.repository.HotspotRepository
 import io.ktor.http.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.serialization.Serializable
-
-@Serializable
-private data class HotspotErrorResponse(val error: String)
 
 private data class HotspotGeoParams(val lat: Double, val lng: Double, val dist: Int?, val back: Int?)
 
@@ -30,7 +27,7 @@ fun Route.hotspotRoutes(hotspotRepo: HotspotRepository) {
                 is DomainResult.Success -> call.respond(HttpStatusCode.OK, result.data)
                 is DomainResult.Failure -> call.respond(
                     HttpStatusCode.InternalServerError,
-                    HotspotErrorResponse(result.message)
+                    ApiError(result.message)
                 )
             }
         }
@@ -38,7 +35,7 @@ fun Route.hotspotRoutes(hotspotRepo: HotspotRepository) {
         get("/nearby") {
             val geo = call.parseHotspotGeoParams()
             if (geo == null) {
-                call.respond(HttpStatusCode.BadRequest, HotspotErrorResponse("lat and lng are required and must be valid numbers"))
+                call.respond(HttpStatusCode.BadRequest, ApiError("lat and lng are required and must be valid numbers"))
                 return@get
             }
 
@@ -46,7 +43,7 @@ fun Route.hotspotRoutes(hotspotRepo: HotspotRepository) {
                 is DomainResult.Success -> call.respond(HttpStatusCode.OK, result.data)
                 is DomainResult.Failure -> call.respond(
                     HttpStatusCode.InternalServerError,
-                    HotspotErrorResponse(result.message)
+                    ApiError(result.message)
                 )
             }
         }
@@ -58,7 +55,7 @@ fun Route.hotspotRoutes(hotspotRepo: HotspotRepository) {
                 is DomainResult.Success -> call.respond(HttpStatusCode.OK, result.data)
                 is DomainResult.Failure -> call.respond(
                     HttpStatusCode.InternalServerError,
-                    HotspotErrorResponse(result.message)
+                    ApiError(result.message)
                 )
             }
         }

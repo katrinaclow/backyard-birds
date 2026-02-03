@@ -55,11 +55,11 @@ class DatabaseSeeder(
 
         logger.info("Seeding regions from eBird API...")
 
-        // Fetch all countries
+        // Fetch all countries (parent is null since "world" isn't a real region)
         when (val countriesResult = regionApiRepo.getSubRegions("country", "world")) {
             is DomainResult.Success -> {
                 val countries = countriesResult.data
-                when (val saveResult = regionDbRepo.saveRegions(countries, "country", "world")) {
+                when (val saveResult = regionDbRepo.saveRegions(countries, "country", null)) {
                     is DomainResult.Success -> {
                         logger.info("Seeded ${countries.size} countries")
                     }

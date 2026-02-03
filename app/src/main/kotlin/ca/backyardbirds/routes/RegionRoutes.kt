@@ -1,14 +1,11 @@
 package ca.backyardbirds.routes
 
+import ca.backyardbirds.domain.model.ApiError
 import ca.backyardbirds.domain.model.DomainResult
 import ca.backyardbirds.domain.repository.RegionRepository
 import io.ktor.http.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.serialization.Serializable
-
-@Serializable
-private data class RegionErrorResponse(val error: String)
 
 fun Route.regionRoutes(regionRepo: RegionRepository) {
     route("/api/regions") {
@@ -20,7 +17,7 @@ fun Route.regionRoutes(regionRepo: RegionRepository) {
                 is DomainResult.Success -> call.respond(HttpStatusCode.OK, result.data)
                 is DomainResult.Failure -> call.respond(
                     HttpStatusCode.InternalServerError,
-                    RegionErrorResponse(result.message)
+                    ApiError(result.message)
                 )
             }
         }
@@ -32,7 +29,7 @@ fun Route.regionRoutes(regionRepo: RegionRepository) {
                 is DomainResult.Success -> call.respond(HttpStatusCode.OK, result.data)
                 is DomainResult.Failure -> call.respond(
                     HttpStatusCode.InternalServerError,
-                    RegionErrorResponse(result.message)
+                    ApiError(result.message)
                 )
             }
         }
@@ -44,7 +41,7 @@ fun Route.regionRoutes(regionRepo: RegionRepository) {
                 is DomainResult.Success -> call.respond(HttpStatusCode.OK, result.data)
                 is DomainResult.Failure -> call.respond(
                     HttpStatusCode.InternalServerError,
-                    RegionErrorResponse(result.message)
+                    ApiError(result.message)
                 )
             }
         }

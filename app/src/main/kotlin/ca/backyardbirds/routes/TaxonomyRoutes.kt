@@ -1,14 +1,11 @@
 package ca.backyardbirds.routes
 
+import ca.backyardbirds.domain.model.ApiError
 import ca.backyardbirds.domain.model.DomainResult
 import ca.backyardbirds.domain.repository.TaxonomyRepository
 import io.ktor.http.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.serialization.Serializable
-
-@Serializable
-private data class TaxonomyErrorResponse(val error: String)
 
 fun Route.taxonomyRoutes(taxonomyRepo: TaxonomyRepository) {
     route("/api/taxonomy") {
@@ -22,7 +19,7 @@ fun Route.taxonomyRoutes(taxonomyRepo: TaxonomyRepository) {
                 is DomainResult.Success -> call.respond(HttpStatusCode.OK, result.data)
                 is DomainResult.Failure -> call.respond(
                     HttpStatusCode.InternalServerError,
-                    TaxonomyErrorResponse(result.message)
+                    ApiError(result.message)
                 )
             }
         }
@@ -33,7 +30,7 @@ fun Route.taxonomyRoutes(taxonomyRepo: TaxonomyRepository) {
                 is DomainResult.Success -> call.respond(HttpStatusCode.OK, result.data)
                 is DomainResult.Failure -> call.respond(
                     HttpStatusCode.InternalServerError,
-                    TaxonomyErrorResponse(result.message)
+                    ApiError(result.message)
                 )
             }
         }
@@ -43,7 +40,7 @@ fun Route.taxonomyRoutes(taxonomyRepo: TaxonomyRepository) {
                 is DomainResult.Success -> call.respond(HttpStatusCode.OK, result.data)
                 is DomainResult.Failure -> call.respond(
                     HttpStatusCode.InternalServerError,
-                    TaxonomyErrorResponse(result.message)
+                    ApiError(result.message)
                 )
             }
         }
@@ -53,7 +50,7 @@ fun Route.taxonomyRoutes(taxonomyRepo: TaxonomyRepository) {
                 is DomainResult.Success -> call.respond(HttpStatusCode.OK, result.data)
                 is DomainResult.Failure -> call.respond(
                     HttpStatusCode.InternalServerError,
-                    TaxonomyErrorResponse(result.message)
+                    ApiError(result.message)
                 )
             }
         }
@@ -64,7 +61,7 @@ fun Route.taxonomyRoutes(taxonomyRepo: TaxonomyRepository) {
                 is DomainResult.Success -> call.respond(HttpStatusCode.OK, result.data)
                 is DomainResult.Failure -> call.respond(
                     HttpStatusCode.InternalServerError,
-                    TaxonomyErrorResponse(result.message)
+                    ApiError(result.message)
                 )
             }
         }

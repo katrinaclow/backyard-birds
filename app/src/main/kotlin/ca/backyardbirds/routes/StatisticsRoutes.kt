@@ -1,14 +1,11 @@
 package ca.backyardbirds.routes
 
+import ca.backyardbirds.domain.model.ApiError
 import ca.backyardbirds.domain.model.DomainResult
 import ca.backyardbirds.domain.repository.StatisticsRepository
 import io.ktor.http.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.serialization.Serializable
-
-@Serializable
-private data class StatisticsErrorResponse(val error: String)
 
 fun Route.statisticsRoutes(statisticsRepo: StatisticsRepository) {
     route("/api/statistics") {
@@ -19,7 +16,7 @@ fun Route.statisticsRoutes(statisticsRepo: StatisticsRepository) {
             val day = call.parameters["day"]?.toIntOrNull()
 
             if (year == null || month == null || day == null) {
-                call.respond(HttpStatusCode.BadRequest, StatisticsErrorResponse("year, month, and day must be valid integers"))
+                call.respond(HttpStatusCode.BadRequest, ApiError("year, month, and day must be valid integers"))
                 return@get
             }
 
@@ -27,7 +24,7 @@ fun Route.statisticsRoutes(statisticsRepo: StatisticsRepository) {
                 is DomainResult.Success -> call.respond(HttpStatusCode.OK, result.data)
                 is DomainResult.Failure -> call.respond(
                     HttpStatusCode.InternalServerError,
-                    StatisticsErrorResponse(result.message)
+                    ApiError(result.message)
                 )
             }
         }
@@ -39,7 +36,7 @@ fun Route.statisticsRoutes(statisticsRepo: StatisticsRepository) {
             val day = call.parameters["day"]?.toIntOrNull()
 
             if (year == null || month == null || day == null) {
-                call.respond(HttpStatusCode.BadRequest, StatisticsErrorResponse("year, month, and day must be valid integers"))
+                call.respond(HttpStatusCode.BadRequest, ApiError("year, month, and day must be valid integers"))
                 return@get
             }
 
@@ -47,7 +44,7 @@ fun Route.statisticsRoutes(statisticsRepo: StatisticsRepository) {
                 is DomainResult.Success -> call.respond(HttpStatusCode.OK, result.data)
                 is DomainResult.Failure -> call.respond(
                     HttpStatusCode.InternalServerError,
-                    StatisticsErrorResponse(result.message)
+                    ApiError(result.message)
                 )
             }
         }
