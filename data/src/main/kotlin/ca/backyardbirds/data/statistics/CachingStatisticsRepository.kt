@@ -5,6 +5,7 @@ import ca.backyardbirds.database.repository.StatisticsDatabaseRepository
 import ca.backyardbirds.domain.model.DomainResult
 import ca.backyardbirds.domain.model.RegionStats
 import ca.backyardbirds.domain.model.TopObserver
+import ca.backyardbirds.domain.query.Top100QueryParams
 import ca.backyardbirds.domain.repository.StatisticsRepository
 import java.time.LocalDate
 import kotlin.time.Duration.Companion.hours
@@ -25,10 +26,11 @@ class CachingStatisticsRepository(
         regionCode: String,
         year: Int,
         month: Int,
-        day: Int
+        day: Int,
+        params: Top100QueryParams
     ): DomainResult<List<TopObserver>> {
         val date = LocalDate.of(year, month, day)
-        val cacheKey = "top100:$regionCode:$date"
+        val cacheKey = "top100:$regionCode:$date${params.toCacheKeySuffix()}"
 
         if (cacheMetadata.isCacheValid(cacheKey)) {
             val cached = dbRepository.getTopObservers(regionCode, date)
@@ -37,7 +39,7 @@ class CachingStatisticsRepository(
             }
         }
 
-        return when (val apiResult = apiRepository.getTop100(regionCode, year, month, day)) {
+        return when (val apiResult = apiRepository.getTop100(regionCode, year, month, day, params)) {
             is DomainResult.Success -> {
                 dbRepository.saveTopObservers(regionCode, date, apiResult.data)
                 cacheMetadata.updateCacheMetadata(cacheKey, ENTITY_TYPE_TOP100, regionCode, STATISTICS_TTL)
@@ -45,6 +47,12 @@ class CachingStatisticsRepository(
             }
             is DomainResult.Failure -> apiResult
         }
+    }
+
+    private fun Top100QueryParams.toCacheKeySuffix(): String {
+        val parts = mutableListOf<String>()
+        rankedBy?.let { parts.add("rankedBy=$it") }
+        return if (parts.isEmpty()) "" else ":${parts.joinToString(":")}"
     }
 
     override suspend fun getRegionStats(

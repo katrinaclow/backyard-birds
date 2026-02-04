@@ -5,6 +5,7 @@ import ca.backyardbirds.database.repository.ChecklistDatabaseRepository
 import ca.backyardbirds.domain.model.Checklist
 import ca.backyardbirds.domain.model.ChecklistSummary
 import ca.backyardbirds.domain.model.DomainResult
+import ca.backyardbirds.domain.query.ChecklistQueryParams
 import ca.backyardbirds.domain.repository.ChecklistRepository
 import java.time.LocalDate
 import kotlin.time.Duration.Companion.minutes
@@ -23,18 +24,18 @@ class CachingChecklistRepository(
 
     override suspend fun getRecentChecklists(
         regionCode: String,
-        maxResults: Int?
+        params: ChecklistQueryParams
     ): DomainResult<List<ChecklistSummary>> {
-        val cacheKey = "checklists:recent:$regionCode"
+        val cacheKey = "checklists:recent:$regionCode${params.toCacheKeySuffix()}"
 
         if (cacheMetadata.isCacheValid(cacheKey)) {
-            val cached = dbRepository.getRecentChecklists(regionCode, maxResults ?: 200)
+            val cached = dbRepository.getRecentChecklists(regionCode, params.maxResults ?: 200)
             if (cached is DomainResult.Success && cached.data.isNotEmpty()) {
                 return cached
             }
         }
 
-        return when (val apiResult = apiRepository.getRecentChecklists(regionCode, maxResults)) {
+        return when (val apiResult = apiRepository.getRecentChecklists(regionCode, params)) {
             is DomainResult.Success -> {
                 dbRepository.saveChecklistSummaries(apiResult.data, regionCode)
                 cacheMetadata.updateCacheMetadata(cacheKey, ENTITY_TYPE, regionCode, CHECKLISTS_TTL)
@@ -49,19 +50,19 @@ class CachingChecklistRepository(
         year: Int,
         month: Int,
         day: Int,
-        maxResults: Int?
+        params: ChecklistQueryParams
     ): DomainResult<List<ChecklistSummary>> {
         val date = LocalDate.of(year, month, day)
-        val cacheKey = "checklists:date:$regionCode:$date"
+        val cacheKey = "checklists:date:$regionCode:$date${params.toCacheKeySuffix()}"
 
         if (cacheMetadata.isCacheValid(cacheKey)) {
-            val cached = dbRepository.getChecklistsOnDate(regionCode, date, maxResults ?: 200)
+            val cached = dbRepository.getChecklistsOnDate(regionCode, date, params.maxResults ?: 200)
             if (cached is DomainResult.Success && cached.data.isNotEmpty()) {
                 return cached
             }
         }
 
-        return when (val apiResult = apiRepository.getChecklistsOnDate(regionCode, year, month, day, maxResults)) {
+        return when (val apiResult = apiRepository.getChecklistsOnDate(regionCode, year, month, day, params)) {
             is DomainResult.Success -> {
                 dbRepository.saveChecklistSummaries(apiResult.data, regionCode)
                 cacheMetadata.updateCacheMetadata(cacheKey, ENTITY_TYPE, regionCode, CHECKLISTS_TTL)
@@ -69,6 +70,12 @@ class CachingChecklistRepository(
             }
             is DomainResult.Failure -> apiResult
         }
+    }
+
+    private fun ChecklistQueryParams.toCacheKeySuffix(): String {
+        val parts = mutableListOf<String>()
+        sortKey?.let { parts.add("sortKey=$it") }
+        return if (parts.isEmpty()) "" else ":${parts.joinToString(":")}"
     }
 
     override suspend fun getChecklist(subId: String): DomainResult<Checklist> {

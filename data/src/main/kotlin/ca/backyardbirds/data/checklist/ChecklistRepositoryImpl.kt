@@ -6,6 +6,7 @@ import ca.backyardbirds.data.checklist.dto.toDomain
 import ca.backyardbirds.domain.model.Checklist
 import ca.backyardbirds.domain.model.ChecklistSummary
 import ca.backyardbirds.domain.model.DomainResult
+import ca.backyardbirds.domain.query.ChecklistQueryParams
 import ca.backyardbirds.domain.repository.ChecklistRepository
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -20,16 +21,15 @@ class ChecklistRepositoryImpl(
 
     override suspend fun getRecentChecklists(
         regionCode: String,
-        maxResults: Int?
+        params: ChecklistQueryParams
     ): DomainResult<List<ChecklistSummary>> {
         return try {
             val response = client.get("$baseUrl/product/lists/$regionCode") {
                 headers {
                     append("X-eBirdApiToken", apiKey)
                 }
-                if (maxResults != null) {
-                    parameter("maxResults", maxResults.toString())
-                }
+                params.sortKey?.let { parameter("sortKey", it) }
+                params.maxResults?.let { parameter("maxResults", it) }
             }
             when (response.status) {
                 HttpStatusCode.OK -> DomainResult.Success(
@@ -55,16 +55,15 @@ class ChecklistRepositoryImpl(
         year: Int,
         month: Int,
         day: Int,
-        maxResults: Int?
+        params: ChecklistQueryParams
     ): DomainResult<List<ChecklistSummary>> {
         return try {
             val response = client.get("$baseUrl/product/lists/$regionCode/$year/$month/$day") {
                 headers {
                     append("X-eBirdApiToken", apiKey)
                 }
-                if (maxResults != null) {
-                    parameter("maxResults", maxResults.toString())
-                }
+                params.sortKey?.let { parameter("sortKey", it) }
+                params.maxResults?.let { parameter("maxResults", it) }
             }
             when (response.status) {
                 HttpStatusCode.OK -> DomainResult.Success(

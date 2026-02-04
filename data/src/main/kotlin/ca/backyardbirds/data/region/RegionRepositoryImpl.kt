@@ -6,6 +6,7 @@ import ca.backyardbirds.data.region.dto.toDomain
 import ca.backyardbirds.domain.model.DomainResult
 import ca.backyardbirds.domain.model.Region
 import ca.backyardbirds.domain.model.RegionInfo
+import ca.backyardbirds.domain.query.RegionInfoQueryParams
 import ca.backyardbirds.domain.repository.RegionRepository
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -47,12 +48,16 @@ class RegionRepositoryImpl(
         }
     }
 
-    override suspend fun getRegionInfo(regionCode: String): DomainResult<RegionInfo> {
+    override suspend fun getRegionInfo(
+        regionCode: String,
+        params: RegionInfoQueryParams
+    ): DomainResult<RegionInfo> {
         return try {
             val response = client.get("$baseUrl/ref/region/info/$regionCode") {
                 headers {
                     append("X-eBirdApiToken", apiKey)
                 }
+                params.regionNameFormat?.let { parameter("regionNameFormat", it) }
             }
             when (response.status) {
                 HttpStatusCode.OK -> DomainResult.Success(

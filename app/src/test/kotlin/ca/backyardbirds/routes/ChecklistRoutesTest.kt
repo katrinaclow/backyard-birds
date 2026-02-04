@@ -4,6 +4,7 @@ import ca.backyardbirds.domain.model.Checklist
 import ca.backyardbirds.domain.model.ChecklistObservation
 import ca.backyardbirds.domain.model.ChecklistSummary
 import ca.backyardbirds.domain.model.DomainResult
+import ca.backyardbirds.domain.query.ChecklistQueryParams
 import ca.backyardbirds.domain.repository.ChecklistRepository
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -55,7 +56,7 @@ class ChecklistRoutesTest {
 
     @Test
     fun getRecentChecklists_returns200_onSuccess() {
-        coEvery { checklistRepo.getRecentChecklists("US-NY", null) } returns DomainResult.Success(listOf(sampleChecklistSummary))
+        coEvery { checklistRepo.getRecentChecklists("US-NY", any()) } returns DomainResult.Success(listOf(sampleChecklistSummary))
 
         withTestApp {
             val response = client.get("/api/checklists/region/US-NY")
@@ -67,7 +68,7 @@ class ChecklistRoutesTest {
 
     @Test
     fun getRecentChecklists_passesMaxResultsParam() {
-        coEvery { checklistRepo.getRecentChecklists("US-NY", 10) } returns DomainResult.Success(emptyList())
+        coEvery { checklistRepo.getRecentChecklists("US-NY", ChecklistQueryParams(maxResults = 10)) } returns DomainResult.Success(emptyList())
 
         withTestApp {
             val response = client.get("/api/checklists/region/US-NY?maxResults=10")
@@ -77,7 +78,7 @@ class ChecklistRoutesTest {
 
     @Test
     fun getRecentChecklists_returns500_onFailure() {
-        coEvery { checklistRepo.getRecentChecklists("INVALID", null) } returns DomainResult.Failure("Region not found")
+        coEvery { checklistRepo.getRecentChecklists("INVALID", any()) } returns DomainResult.Failure("Region not found")
 
         withTestApp {
             val response = client.get("/api/checklists/region/INVALID")
@@ -90,7 +91,7 @@ class ChecklistRoutesTest {
 
     @Test
     fun getChecklistsOnDate_returns200_onSuccess() {
-        coEvery { checklistRepo.getChecklistsOnDate("US-NY", 2024, 1, 15, null) } returns DomainResult.Success(listOf(sampleChecklistSummary))
+        coEvery { checklistRepo.getChecklistsOnDate("US-NY", 2024, 1, 15, any()) } returns DomainResult.Success(listOf(sampleChecklistSummary))
 
         withTestApp {
             val response = client.get("/api/checklists/region/US-NY/2024/1/15")
@@ -101,7 +102,7 @@ class ChecklistRoutesTest {
 
     @Test
     fun getChecklistsOnDate_passesMaxResultsParam() {
-        coEvery { checklistRepo.getChecklistsOnDate("US-NY", 2024, 1, 15, 10) } returns DomainResult.Success(emptyList())
+        coEvery { checklistRepo.getChecklistsOnDate("US-NY", 2024, 1, 15, ChecklistQueryParams(maxResults = 10)) } returns DomainResult.Success(emptyList())
 
         withTestApp {
             val response = client.get("/api/checklists/region/US-NY/2024/1/15?maxResults=10")
@@ -120,7 +121,7 @@ class ChecklistRoutesTest {
 
     @Test
     fun getChecklistsOnDate_returns500_onFailure() {
-        coEvery { checklistRepo.getChecklistsOnDate("INVALID", 2024, 1, 15, null) } returns DomainResult.Failure("Region not found")
+        coEvery { checklistRepo.getChecklistsOnDate("INVALID", 2024, 1, 15, any()) } returns DomainResult.Failure("Region not found")
 
         withTestApp {
             val response = client.get("/api/checklists/region/INVALID/2024/1/15")

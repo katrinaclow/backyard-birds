@@ -1,6 +1,7 @@
 package ca.backyardbirds.data.checklist
 
 import ca.backyardbirds.domain.model.DomainResult
+import ca.backyardbirds.domain.query.ChecklistQueryParams
 import io.ktor.client.*
 import io.ktor.client.engine.mock.*
 import io.ktor.client.plugins.contentnegotiation.*
@@ -92,7 +93,7 @@ class ChecklistRepositoryImplTest {
             respond(content = "[]", status = HttpStatusCode.OK, headers = headersOf(HttpHeaders.ContentType, "application/json"))
         }
 
-        repo.getRecentChecklists("US-NY", maxResults = 10)
+        repo.getRecentChecklists("US-NY", ChecklistQueryParams(maxResults = 10))
 
         assertTrue(capturedUrl!!.contains("maxResults=10"))
     }
@@ -174,7 +175,7 @@ class ChecklistRepositoryImplTest {
             respond(content = "[]", status = HttpStatusCode.OK, headers = headersOf(HttpHeaders.ContentType, "application/json"))
         }
 
-        repo.getChecklistsOnDate("US-NY", 2024, 1, 15, maxResults = 10)
+        repo.getChecklistsOnDate("US-NY", 2024, 1, 15, ChecklistQueryParams(maxResults = 10))
 
         assertTrue(capturedUrl!!.contains("maxResults=10"))
     }

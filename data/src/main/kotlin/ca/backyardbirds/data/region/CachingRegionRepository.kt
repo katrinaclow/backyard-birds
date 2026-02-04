@@ -5,6 +5,7 @@ import ca.backyardbirds.database.repository.RegionDatabaseRepository
 import ca.backyardbirds.domain.model.DomainResult
 import ca.backyardbirds.domain.model.Region
 import ca.backyardbirds.domain.model.RegionInfo
+import ca.backyardbirds.domain.query.RegionInfoQueryParams
 import ca.backyardbirds.domain.repository.RegionRepository
 import kotlin.time.Duration.Companion.days
 
@@ -44,8 +45,11 @@ class CachingRegionRepository(
         }
     }
 
-    override suspend fun getRegionInfo(regionCode: String): DomainResult<RegionInfo> {
-        val cacheKey = "region:info:$regionCode"
+    override suspend fun getRegionInfo(
+        regionCode: String,
+        params: RegionInfoQueryParams
+    ): DomainResult<RegionInfo> {
+        val cacheKey = "region:info:$regionCode${params.toCacheKeySuffix()}"
 
         if (cacheMetadata.isCacheValid(cacheKey)) {
             when (val cached = dbRepository.getRegionInfo(regionCode)) {
@@ -56,7 +60,7 @@ class CachingRegionRepository(
             }
         }
 
-        return when (val apiResult = apiRepository.getRegionInfo(regionCode)) {
+        return when (val apiResult = apiRepository.getRegionInfo(regionCode, params)) {
             is DomainResult.Success -> {
                 dbRepository.saveRegionInfo(apiResult.data)
                 cacheMetadata.updateCacheMetadata(cacheKey, ENTITY_TYPE_INFO, regionCode, REGIONS_TTL)
@@ -64,6 +68,12 @@ class CachingRegionRepository(
             }
             is DomainResult.Failure -> apiResult
         }
+    }
+
+    private fun RegionInfoQueryParams.toCacheKeySuffix(): String {
+        val parts = mutableListOf<String>()
+        regionNameFormat?.let { parts.add("fmt=$it") }
+        return if (parts.isEmpty()) "" else ":${parts.joinToString(":")}"
     }
 
     override suspend fun getAdjacentRegions(regionCode: String): DomainResult<List<Region>> {

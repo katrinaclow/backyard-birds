@@ -10,6 +10,7 @@ import ca.backyardbirds.domain.model.TaxaLocale
 import ca.backyardbirds.domain.model.TaxonomicGroup
 import ca.backyardbirds.domain.model.TaxonomyEntry
 import ca.backyardbirds.domain.model.TaxonomyVersion
+import ca.backyardbirds.domain.query.TaxonomyQueryParams
 import ca.backyardbirds.domain.repository.TaxonomyRepository
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -24,7 +25,8 @@ class TaxonomyRepositoryImpl(
 
     override suspend fun getTaxonomy(
         speciesCodes: List<String>?,
-        category: String?
+        category: String?,
+        params: TaxonomyQueryParams
     ): DomainResult<List<TaxonomyEntry>> {
         return try {
             val response = client.get("$baseUrl/ref/taxonomy/ebird") {
@@ -38,6 +40,8 @@ class TaxonomyRepositoryImpl(
                 if (!category.isNullOrBlank()) {
                     parameter("cat", category)
                 }
+                params.locale?.let { parameter("locale", it) }
+                params.version?.let { parameter("version", it) }
             }
             when (response.status) {
                 HttpStatusCode.OK -> DomainResult.Success(

@@ -4,6 +4,8 @@ import ca.backyardbirds.database.repository.CacheMetadataRepository
 import ca.backyardbirds.database.repository.ObservationDatabaseRepository
 import ca.backyardbirds.domain.model.DomainResult
 import ca.backyardbirds.domain.model.Observation
+import ca.backyardbirds.domain.query.HistoricQueryParams
+import ca.backyardbirds.domain.query.ObservationQueryParams
 import ca.backyardbirds.domain.repository.NearbyObservationRepository
 import ca.backyardbirds.domain.repository.RegionObservationRepository
 import kotlin.time.Duration.Companion.minutes
@@ -21,8 +23,11 @@ class CachingObservationRepository(
         private const val ENTITY_TYPE_NOTABLE = "observations_notable"
     }
 
-    override suspend fun getRecentObservations(regionCode: String): DomainResult<List<Observation>> {
-        val cacheKey = "observations:region:$regionCode"
+    override suspend fun getRecentObservations(
+        regionCode: String,
+        params: ObservationQueryParams
+    ): DomainResult<List<Observation>> {
+        val cacheKey = "observations:region:$regionCode${params.toCacheKeySuffix()}"
 
         if (cacheMetadata.isCacheValid(cacheKey)) {
             val cached = dbRepository.getRecentObservations(regionCode)
@@ -31,7 +36,7 @@ class CachingObservationRepository(
             }
         }
 
-        return when (val apiResult = apiRepository.getRecentObservations(regionCode)) {
+        return when (val apiResult = apiRepository.getRecentObservations(regionCode, params)) {
             is DomainResult.Success -> {
                 dbRepository.saveObservations(apiResult.data, regionCode)
                 cacheMetadata.updateCacheMetadata(cacheKey, ENTITY_TYPE, regionCode, OBSERVATIONS_TTL)
@@ -41,8 +46,11 @@ class CachingObservationRepository(
         }
     }
 
-    override suspend fun getRecentNotableObservations(regionCode: String): DomainResult<List<Observation>> {
-        val cacheKey = "observations:notable:$regionCode"
+    override suspend fun getRecentNotableObservations(
+        regionCode: String,
+        params: ObservationQueryParams
+    ): DomainResult<List<Observation>> {
+        val cacheKey = "observations:notable:$regionCode${params.toCacheKeySuffix()}"
 
         if (cacheMetadata.isCacheValid(cacheKey)) {
             val cached = dbRepository.getRecentNotableObservations(regionCode)
@@ -51,7 +59,7 @@ class CachingObservationRepository(
             }
         }
 
-        return when (val apiResult = apiRepository.getRecentNotableObservations(regionCode)) {
+        return when (val apiResult = apiRepository.getRecentNotableObservations(regionCode, params)) {
             is DomainResult.Success -> {
                 dbRepository.saveObservations(apiResult.data, regionCode, isNotable = true)
                 cacheMetadata.updateCacheMetadata(cacheKey, ENTITY_TYPE_NOTABLE, regionCode, OBSERVATIONS_TTL)
@@ -63,9 +71,10 @@ class CachingObservationRepository(
 
     override suspend fun getRecentObservationsOfSpecies(
         regionCode: String,
-        speciesCode: String
+        speciesCode: String,
+        params: ObservationQueryParams
     ): DomainResult<List<Observation>> {
-        val cacheKey = "observations:species:$regionCode:$speciesCode"
+        val cacheKey = "observations:species:$regionCode:$speciesCode${params.toCacheKeySuffix()}"
 
         if (cacheMetadata.isCacheValid(cacheKey)) {
             val cached = dbRepository.getObservationsOfSpecies(regionCode, speciesCode)
@@ -74,7 +83,7 @@ class CachingObservationRepository(
             }
         }
 
-        return when (val apiResult = apiRepository.getRecentObservationsOfSpecies(regionCode, speciesCode)) {
+        return when (val apiResult = apiRepository.getRecentObservationsOfSpecies(regionCode, speciesCode, params)) {
             is DomainResult.Success -> {
                 dbRepository.saveObservations(apiResult.data, regionCode)
                 cacheMetadata.updateCacheMetadata(cacheKey, ENTITY_TYPE, regionCode, OBSERVATIONS_TTL)
@@ -88,11 +97,12 @@ class CachingObservationRepository(
         regionCode: String,
         year: Int,
         month: Int,
-        day: Int
+        day: Int,
+        params: HistoricQueryParams
     ): DomainResult<List<Observation>> {
         // Historic observations don't change, so we could cache longer
         // For now, pass through to API
-        return apiRepository.getHistoricObservations(regionCode, year, month, day)
+        return apiRepository.getHistoricObservations(regionCode, year, month, day, params)
     }
 
     // NearbyObservationRepository methods - these are harder to cache efficiently
@@ -101,35 +111,48 @@ class CachingObservationRepository(
     override suspend fun getRecentNearbyObservations(
         lat: Double,
         lng: Double,
-        distKm: Int?
+        distKm: Int?,
+        params: ObservationQueryParams
     ): DomainResult<List<Observation>> {
         // Could implement spatial caching later with PostGIS
-        return nearbyApiRepository.getRecentNearbyObservations(lat, lng, distKm)
+        return nearbyApiRepository.getRecentNearbyObservations(lat, lng, distKm, params)
     }
 
     override suspend fun getRecentNearbyObservationsOfSpecies(
         speciesCode: String,
         lat: Double,
         lng: Double,
-        distKm: Int?
+        distKm: Int?,
+        params: ObservationQueryParams
     ): DomainResult<List<Observation>> {
-        return nearbyApiRepository.getRecentNearbyObservationsOfSpecies(speciesCode, lat, lng, distKm)
+        return nearbyApiRepository.getRecentNearbyObservationsOfSpecies(speciesCode, lat, lng, distKm, params)
     }
 
     override suspend fun getNearestObservationsOfSpecies(
         speciesCode: String,
         lat: Double,
         lng: Double,
-        distKm: Int?
+        distKm: Int?,
+        params: ObservationQueryParams
     ): DomainResult<List<Observation>> {
-        return nearbyApiRepository.getNearestObservationsOfSpecies(speciesCode, lat, lng, distKm)
+        return nearbyApiRepository.getNearestObservationsOfSpecies(speciesCode, lat, lng, distKm, params)
     }
 
     override suspend fun getRecentNearbyNotableObservations(
         lat: Double,
         lng: Double,
-        distKm: Int?
+        distKm: Int?,
+        params: ObservationQueryParams
     ): DomainResult<List<Observation>> {
-        return nearbyApiRepository.getRecentNearbyNotableObservations(lat, lng, distKm)
+        return nearbyApiRepository.getRecentNearbyNotableObservations(lat, lng, distKm, params)
+    }
+
+    private fun ObservationQueryParams.toCacheKeySuffix(): String {
+        val parts = mutableListOf<String>()
+        back?.let { parts.add("back=$it") }
+        hotspot?.let { parts.add("hotspot=$it") }
+        cat?.let { parts.add("cat=$it") }
+        sort?.let { parts.add("sort=$it") }
+        return if (parts.isEmpty()) "" else ":${parts.joinToString(":")}"
     }
 }

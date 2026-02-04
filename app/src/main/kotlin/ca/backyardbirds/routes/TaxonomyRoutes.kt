@@ -2,10 +2,18 @@ package ca.backyardbirds.routes
 
 import ca.backyardbirds.domain.model.ApiError
 import ca.backyardbirds.domain.model.DomainResult
+import ca.backyardbirds.domain.query.TaxonomyQueryParams
 import ca.backyardbirds.domain.repository.TaxonomyRepository
 import io.ktor.http.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+
+private fun RoutingCall.parseTaxonomyQueryParams(): TaxonomyQueryParams {
+    return TaxonomyQueryParams(
+        locale = request.queryParameters["locale"],
+        version = request.queryParameters["version"]
+    )
+}
 
 fun Route.taxonomyRoutes(taxonomyRepo: TaxonomyRepository) {
     route("/api/taxonomy") {
@@ -14,8 +22,9 @@ fun Route.taxonomyRoutes(taxonomyRepo: TaxonomyRepository) {
                 ?.split(",")
                 ?.filter { it.isNotBlank() }
             val category = call.request.queryParameters["cat"]
+            val params = call.parseTaxonomyQueryParams()
 
-            when (val result = taxonomyRepo.getTaxonomy(speciesCodes, category)) {
+            when (val result = taxonomyRepo.getTaxonomy(speciesCodes, category, params)) {
                 is DomainResult.Success -> call.respond(HttpStatusCode.OK, result.data)
                 is DomainResult.Failure -> call.respond(
                     HttpStatusCode.InternalServerError,

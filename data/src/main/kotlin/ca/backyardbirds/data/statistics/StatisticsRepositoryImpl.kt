@@ -6,6 +6,7 @@ import ca.backyardbirds.data.statistics.dto.toDomain
 import ca.backyardbirds.domain.model.DomainResult
 import ca.backyardbirds.domain.model.RegionStats
 import ca.backyardbirds.domain.model.TopObserver
+import ca.backyardbirds.domain.query.Top100QueryParams
 import ca.backyardbirds.domain.repository.StatisticsRepository
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -22,13 +23,16 @@ class StatisticsRepositoryImpl(
         regionCode: String,
         year: Int,
         month: Int,
-        day: Int
+        day: Int,
+        params: Top100QueryParams
     ): DomainResult<List<TopObserver>> {
         return try {
             val response = client.get("$baseUrl/product/top100/$regionCode/$year/$month/$day") {
                 headers {
                     append("X-eBirdApiToken", apiKey)
                 }
+                params.rankedBy?.let { parameter("rankedBy", it) }
+                params.maxResults?.let { parameter("maxResults", it) }
             }
             when (response.status) {
                 HttpStatusCode.OK -> DomainResult.Success(
