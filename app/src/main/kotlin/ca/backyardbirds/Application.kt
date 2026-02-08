@@ -27,6 +27,8 @@ import ca.backyardbirds.routes.regionRoutes
 import ca.backyardbirds.routes.speciesListRoutes
 import ca.backyardbirds.routes.statisticsRoutes
 import ca.backyardbirds.routes.taxonomyRoutes
+import ca.backyardbirds.features.api_explorer.routes.searchRoutes
+import ca.backyardbirds.features.api_explorer.service.SearchService
 import io.github.cdimascio.dotenv.dotenv
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
@@ -180,6 +182,9 @@ fun Application.module() {
         cacheMetadata = cacheMetadataRepo
     )
 
+    // API Explorer service
+    val searchService = SearchService(database)
+
     routing {
         swaggerUI(path = "swagger", swaggerFile = "openapi/documentation.yaml")
 
@@ -205,5 +210,8 @@ fun Application.module() {
         speciesListRoutes(speciesListRepository)
         statisticsRoutes(statisticsRepository)
         checklistRoutes(checklistRepository)
+
+        // API Explorer routes
+        searchRoutes(searchService)
     }
 }
