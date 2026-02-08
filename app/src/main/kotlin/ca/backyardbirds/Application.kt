@@ -35,6 +35,7 @@ import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import io.ktor.server.plugins.swagger.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.Serializable
@@ -180,6 +181,8 @@ fun Application.module() {
     )
 
     routing {
+        swaggerUI(path = "swagger", swaggerFile = "openapi/documentation.yaml")
+
         get("/") {
             call.respondText("Backyard Birds API is running!")
         }

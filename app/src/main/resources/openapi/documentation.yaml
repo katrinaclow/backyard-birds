@@ -1,0 +1,1398 @@
+openapi: 3.1.0
+info:
+  title: Backyard Birds API
+  version: 1.0.0
+  description: |
+    Birdwatching analytics platform API powered by eBird data.
+
+    This API provides access to bird observation data, taxonomy information,
+    hotspots, regions, species lists, statistics, and checklists from eBird.
+  contact:
+    name: Backyard Birds
+  license:
+    name: MIT
+
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+
+tags:
+  - name: Observations
+    description: Bird observation data by region, location, or species
+  - name: Taxonomy
+    description: Bird taxonomy and species information
+  - name: Hotspots
+    description: Birding hotspot locations
+  - name: Regions
+    description: Geographic region information
+  - name: Species Lists
+    description: Species lists by region
+  - name: Statistics
+    description: Birding statistics and leaderboards
+  - name: Checklists
+    description: Birding checklists
+  - name: Health
+    description: API health status
+
+paths:
+  # ==================== OBSERVATIONS ====================
+  /api/observations/region/{regionCode}:
+    get:
+      tags: [Observations]
+      summary: Get recent observations in a region
+      description: Returns recent bird observations for the specified region code.
+      operationId: getRecentObservations
+      parameters:
+        - $ref: '#/components/parameters/regionCode'
+        - $ref: '#/components/parameters/back'
+        - $ref: '#/components/parameters/hotspot'
+        - $ref: '#/components/parameters/includeProvisional'
+        - $ref: '#/components/parameters/maxResults'
+        - $ref: '#/components/parameters/sppLocale'
+        - $ref: '#/components/parameters/cat'
+        - $ref: '#/components/parameters/sort'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Observation'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/observations/region/{regionCode}/notable:
+    get:
+      tags: [Observations]
+      summary: Get notable observations in a region
+      description: Returns recent notable (rare/unusual) bird observations for the specified region.
+      operationId: getNotableObservations
+      parameters:
+        - $ref: '#/components/parameters/regionCode'
+        - $ref: '#/components/parameters/back'
+        - $ref: '#/components/parameters/hotspot'
+        - $ref: '#/components/parameters/includeProvisional'
+        - $ref: '#/components/parameters/maxResults'
+        - $ref: '#/components/parameters/sppLocale'
+        - $ref: '#/components/parameters/cat'
+        - $ref: '#/components/parameters/sort'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Observation'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/observations/region/{regionCode}/species/{speciesCode}:
+    get:
+      tags: [Observations]
+      summary: Get observations of a species in a region
+      description: Returns recent observations of a specific species in a region.
+      operationId: getSpeciesObservationsInRegion
+      parameters:
+        - $ref: '#/components/parameters/regionCode'
+        - $ref: '#/components/parameters/speciesCode'
+        - $ref: '#/components/parameters/back'
+        - $ref: '#/components/parameters/hotspot'
+        - $ref: '#/components/parameters/includeProvisional'
+        - $ref: '#/components/parameters/maxResults'
+        - $ref: '#/components/parameters/sppLocale'
+        - $ref: '#/components/parameters/cat'
+        - $ref: '#/components/parameters/sort'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Observation'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/observations/region/{regionCode}/historic/{year}/{month}/{day}:
+    get:
+      tags: [Observations]
+      summary: Get historic observations on a date
+      description: Returns observations recorded on a specific date in a region.
+      operationId: getHistoricObservations
+      parameters:
+        - $ref: '#/components/parameters/regionCode'
+        - $ref: '#/components/parameters/year'
+        - $ref: '#/components/parameters/month'
+        - $ref: '#/components/parameters/day'
+        - name: rank
+          in: query
+          description: Ranking method (mrec = most recent, create = creation date)
+          schema:
+            type: string
+            enum: [mrec, create]
+        - name: detail
+          in: query
+          description: Detail level (simple or full)
+          schema:
+            type: string
+            enum: [simple, full]
+        - $ref: '#/components/parameters/hotspot'
+        - $ref: '#/components/parameters/includeProvisional'
+        - $ref: '#/components/parameters/maxResults'
+        - $ref: '#/components/parameters/sppLocale'
+        - $ref: '#/components/parameters/cat'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Observation'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/observations/nearby:
+    get:
+      tags: [Observations]
+      summary: Get nearby observations
+      description: Returns recent observations near a geographic location.
+      operationId: getNearbyObservations
+      parameters:
+        - $ref: '#/components/parameters/lat'
+        - $ref: '#/components/parameters/lng'
+        - $ref: '#/components/parameters/dist'
+        - $ref: '#/components/parameters/back'
+        - $ref: '#/components/parameters/hotspot'
+        - $ref: '#/components/parameters/includeProvisional'
+        - $ref: '#/components/parameters/maxResults'
+        - $ref: '#/components/parameters/sppLocale'
+        - $ref: '#/components/parameters/cat'
+        - $ref: '#/components/parameters/sort'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Observation'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/observations/nearby/notable:
+    get:
+      tags: [Observations]
+      summary: Get nearby notable observations
+      description: Returns recent notable (rare/unusual) observations near a location.
+      operationId: getNearbyNotableObservations
+      parameters:
+        - $ref: '#/components/parameters/lat'
+        - $ref: '#/components/parameters/lng'
+        - $ref: '#/components/parameters/dist'
+        - $ref: '#/components/parameters/back'
+        - $ref: '#/components/parameters/hotspot'
+        - $ref: '#/components/parameters/includeProvisional'
+        - $ref: '#/components/parameters/maxResults'
+        - $ref: '#/components/parameters/sppLocale'
+        - $ref: '#/components/parameters/cat'
+        - $ref: '#/components/parameters/sort'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Observation'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/observations/nearby/species/{speciesCode}:
+    get:
+      tags: [Observations]
+      summary: Get nearby observations of a species
+      description: Returns recent observations of a specific species near a location.
+      operationId: getNearbySpeciesObservations
+      parameters:
+        - $ref: '#/components/parameters/speciesCode'
+        - $ref: '#/components/parameters/lat'
+        - $ref: '#/components/parameters/lng'
+        - $ref: '#/components/parameters/dist'
+        - $ref: '#/components/parameters/back'
+        - $ref: '#/components/parameters/hotspot'
+        - $ref: '#/components/parameters/includeProvisional'
+        - $ref: '#/components/parameters/maxResults'
+        - $ref: '#/components/parameters/sppLocale'
+        - $ref: '#/components/parameters/cat'
+        - $ref: '#/components/parameters/sort'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Observation'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/observations/nearby/nearest/{speciesCode}:
+    get:
+      tags: [Observations]
+      summary: Get nearest observations of a species
+      description: Returns the nearest observations of a specific species to a location.
+      operationId: getNearestSpeciesObservations
+      parameters:
+        - $ref: '#/components/parameters/speciesCode'
+        - $ref: '#/components/parameters/lat'
+        - $ref: '#/components/parameters/lng'
+        - $ref: '#/components/parameters/dist'
+        - $ref: '#/components/parameters/back'
+        - $ref: '#/components/parameters/hotspot'
+        - $ref: '#/components/parameters/includeProvisional'
+        - $ref: '#/components/parameters/maxResults'
+        - $ref: '#/components/parameters/sppLocale'
+        - $ref: '#/components/parameters/cat'
+        - $ref: '#/components/parameters/sort'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Observation'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ==================== TAXONOMY ====================
+  /api/taxonomy:
+    get:
+      tags: [Taxonomy]
+      summary: Get taxonomy entries
+      description: Returns taxonomy information for bird species.
+      operationId: getTaxonomy
+      parameters:
+        - name: species
+          in: query
+          description: Comma-separated list of species codes to filter
+          schema:
+            type: string
+          example: "norcar,blujay"
+        - name: cat
+          in: query
+          description: Taxonomic category filter
+          schema:
+            type: string
+        - name: locale
+          in: query
+          description: Locale for common names
+          schema:
+            type: string
+          example: "en"
+        - name: version
+          in: query
+          description: Taxonomy version
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TaxonomyEntry'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/taxonomy/{speciesCode}/forms:
+    get:
+      tags: [Taxonomy]
+      summary: Get subspecies/forms for a species
+      description: Returns subspecies and form information for a species.
+      operationId: getSubspecies
+      parameters:
+        - $ref: '#/components/parameters/speciesCode'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TaxonomyEntry'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/taxonomy/versions:
+    get:
+      tags: [Taxonomy]
+      summary: Get taxonomy versions
+      description: Returns available taxonomy versions.
+      operationId: getTaxonomyVersions
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TaxonomyVersion'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/taxonomy/locales:
+    get:
+      tags: [Taxonomy]
+      summary: Get taxonomy locales
+      description: Returns available locale codes for taxonomy names.
+      operationId: getTaxaLocaleCodes
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TaxaLocale'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/taxonomy/groups/{speciesGrouping}:
+    get:
+      tags: [Taxonomy]
+      summary: Get taxonomic groups
+      description: Returns taxonomic groups for a species grouping type.
+      operationId: getTaxonomicGroups
+      parameters:
+        - name: speciesGrouping
+          in: path
+          required: true
+          description: Species grouping type (e.g., "merlin", "ebird")
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TaxonomicGroup'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ==================== HOTSPOTS ====================
+  /api/hotspots/region/{regionCode}:
+    get:
+      tags: [Hotspots]
+      summary: Get hotspots in a region
+      description: Returns birding hotspots within a region.
+      operationId: getHotspotsInRegion
+      parameters:
+        - $ref: '#/components/parameters/regionCode'
+        - $ref: '#/components/parameters/back'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Hotspot'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/hotspots/nearby:
+    get:
+      tags: [Hotspots]
+      summary: Get nearby hotspots
+      description: Returns birding hotspots near a geographic location.
+      operationId: getNearbyHotspots
+      parameters:
+        - $ref: '#/components/parameters/lat'
+        - $ref: '#/components/parameters/lng'
+        - $ref: '#/components/parameters/dist'
+        - $ref: '#/components/parameters/back'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Hotspot'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/hotspots/{locId}:
+    get:
+      tags: [Hotspots]
+      summary: Get hotspot details
+      description: Returns detailed information about a specific hotspot.
+      operationId: getHotspotInfo
+      parameters:
+        - name: locId
+          in: path
+          required: true
+          description: The hotspot location ID
+          schema:
+            type: string
+          example: "L99381"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Hotspot'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ==================== REGIONS ====================
+  /api/regions/{type}/{parentCode}:
+    get:
+      tags: [Regions]
+      summary: Get sub-regions
+      description: Returns sub-regions of a specified type within a parent region.
+      operationId: getSubRegions
+      parameters:
+        - name: type
+          in: path
+          required: true
+          description: Region type (country, subnational1, subnational2)
+          schema:
+            type: string
+            enum: [country, subnational1, subnational2]
+        - name: parentCode
+          in: path
+          required: true
+          description: Parent region code
+          schema:
+            type: string
+          example: "US"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Region'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/regions/{regionCode}/info:
+    get:
+      tags: [Regions]
+      summary: Get region information
+      description: Returns detailed information about a region.
+      operationId: getRegionInfo
+      parameters:
+        - $ref: '#/components/parameters/regionCode'
+        - name: regionNameFormat
+          in: query
+          description: Format for region name
+          schema:
+            type: string
+            enum: [detailed, detailednoqual, full, namequal, nameonly, revdetailed]
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegionInfo'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/regions/{regionCode}/adjacent:
+    get:
+      tags: [Regions]
+      summary: Get adjacent regions
+      description: Returns regions adjacent to the specified region.
+      operationId: getAdjacentRegions
+      parameters:
+        - $ref: '#/components/parameters/regionCode'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Region'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ==================== SPECIES LISTS ====================
+  /api/species/region/{regionCode}:
+    get:
+      tags: [Species Lists]
+      summary: Get species in a region
+      description: Returns list of species codes observed in a region.
+      operationId: getSpeciesInRegion
+      parameters:
+        - $ref: '#/components/parameters/regionCode'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+              example: ["norcar", "blujay", "amecro"]
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ==================== STATISTICS ====================
+  /api/statistics/top100/{regionCode}/{year}/{month}/{day}:
+    get:
+      tags: [Statistics]
+      summary: Get top 100 contributors
+      description: Returns the top 100 contributors for a region on a specific date.
+      operationId: getTop100
+      parameters:
+        - $ref: '#/components/parameters/regionCode'
+        - $ref: '#/components/parameters/year'
+        - $ref: '#/components/parameters/month'
+        - $ref: '#/components/parameters/day'
+        - name: rankedBy
+          in: query
+          description: Ranking criteria (spp = species count, cl = checklist count)
+          schema:
+            type: string
+            enum: [spp, cl]
+        - $ref: '#/components/parameters/maxResults'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TopObserver'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/statistics/{regionCode}/{year}/{month}/{day}:
+    get:
+      tags: [Statistics]
+      summary: Get region statistics
+      description: Returns statistics for a region on a specific date.
+      operationId: getRegionStats
+      parameters:
+        - $ref: '#/components/parameters/regionCode'
+        - $ref: '#/components/parameters/year'
+        - $ref: '#/components/parameters/month'
+        - $ref: '#/components/parameters/day'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegionStats'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ==================== CHECKLISTS ====================
+  /api/checklists/region/{regionCode}:
+    get:
+      tags: [Checklists]
+      summary: Get recent checklists in a region
+      description: Returns recent checklists submitted in a region.
+      operationId: getRecentChecklists
+      parameters:
+        - $ref: '#/components/parameters/regionCode'
+        - name: sortKey
+          in: query
+          description: Sort order (obs_dt = observation date, creation_dt = creation date)
+          schema:
+            type: string
+            enum: [obs_dt, creation_dt]
+        - $ref: '#/components/parameters/maxResults'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ChecklistSummary'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/checklists/region/{regionCode}/{year}/{month}/{day}:
+    get:
+      tags: [Checklists]
+      summary: Get checklists on a specific date
+      description: Returns checklists submitted in a region on a specific date.
+      operationId: getChecklistsOnDate
+      parameters:
+        - $ref: '#/components/parameters/regionCode'
+        - $ref: '#/components/parameters/year'
+        - $ref: '#/components/parameters/month'
+        - $ref: '#/components/parameters/day'
+        - name: sortKey
+          in: query
+          description: Sort order (obs_dt = observation date, creation_dt = creation date)
+          schema:
+            type: string
+            enum: [obs_dt, creation_dt]
+        - $ref: '#/components/parameters/maxResults'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ChecklistSummary'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/checklists/{subId}:
+    get:
+      tags: [Checklists]
+      summary: Get checklist details
+      description: Returns detailed information about a specific checklist.
+      operationId: getChecklist
+      parameters:
+        - name: subId
+          in: path
+          required: true
+          description: The checklist submission ID
+          schema:
+            type: string
+          example: "S123456789"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Checklist'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # ==================== HEALTH ====================
+  /health:
+    get:
+      tags: [Health]
+      summary: Health check
+      description: Returns the health status of the API and database connection.
+      operationId: healthCheck
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '503':
+          description: Service is degraded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+components:
+  parameters:
+    regionCode:
+      name: regionCode
+      in: path
+      required: true
+      description: eBird region code (e.g., US, US-NY, US-NY-109)
+      schema:
+        type: string
+      example: "US-NY"
+
+    speciesCode:
+      name: speciesCode
+      in: path
+      required: true
+      description: eBird species code
+      schema:
+        type: string
+      example: "norcar"
+
+    year:
+      name: year
+      in: path
+      required: true
+      description: Year (4 digits)
+      schema:
+        type: integer
+        minimum: 1800
+        maximum: 2100
+      example: 2024
+
+    month:
+      name: month
+      in: path
+      required: true
+      description: Month (1-12)
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 12
+      example: 6
+
+    day:
+      name: day
+      in: path
+      required: true
+      description: Day of month (1-31)
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 31
+      example: 15
+
+    lat:
+      name: lat
+      in: query
+      required: true
+      description: Latitude (-90 to 90)
+      schema:
+        type: number
+        format: double
+        minimum: -90
+        maximum: 90
+      example: 40.7128
+
+    lng:
+      name: lng
+      in: query
+      required: true
+      description: Longitude (-180 to 180)
+      schema:
+        type: number
+        format: double
+        minimum: -180
+        maximum: 180
+      example: -74.0060
+
+    dist:
+      name: dist
+      in: query
+      required: false
+      description: Search radius in kilometers (default varies by endpoint)
+      schema:
+        type: integer
+        minimum: 0
+        maximum: 500
+      example: 25
+
+    back:
+      name: back
+      in: query
+      required: false
+      description: Number of days back to look (1-30)
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 30
+      example: 14
+
+    hotspot:
+      name: hotspot
+      in: query
+      required: false
+      description: Only return observations from hotspots
+      schema:
+        type: boolean
+      example: true
+
+    includeProvisional:
+      name: includeProvisional
+      in: query
+      required: false
+      description: Include unreviewed observations
+      schema:
+        type: boolean
+      example: false
+
+    maxResults:
+      name: maxResults
+      in: query
+      required: false
+      description: Maximum number of results to return
+      schema:
+        type: integer
+        minimum: 1
+      example: 100
+
+    sppLocale:
+      name: sppLocale
+      in: query
+      required: false
+      description: Locale code for species common names
+      schema:
+        type: string
+      example: "en"
+
+    cat:
+      name: cat
+      in: query
+      required: false
+      description: Taxonomic category filter (species, issf, slash, hybrid, etc.)
+      schema:
+        type: string
+      example: "species"
+
+    sort:
+      name: sort
+      in: query
+      required: false
+      description: Sort order (date or species)
+      schema:
+        type: string
+        enum: [date, species]
+      example: "date"
+
+  schemas:
+    Observation:
+      type: object
+      required:
+        - speciesCode
+        - commonName
+        - scientificName
+        - locationId
+        - locationName
+        - observationDate
+        - latitude
+        - longitude
+        - isValid
+        - isReviewed
+        - isLocationPrivate
+        - submissionId
+      properties:
+        speciesCode:
+          type: string
+          description: eBird species code
+          example: "norcar"
+        commonName:
+          type: string
+          description: Common name of the species
+          example: "Northern Cardinal"
+        scientificName:
+          type: string
+          description: Scientific name of the species
+          example: "Cardinalis cardinalis"
+        locationId:
+          type: string
+          description: eBird location ID
+          example: "L99381"
+        locationName:
+          type: string
+          description: Name of the observation location
+          example: "Central Park"
+        observationDate:
+          type: string
+          format: date-time
+          description: Date and time of observation
+          example: "2024-06-15T08:30:00"
+        howMany:
+          type: integer
+          nullable: true
+          description: Count of individuals observed (null if not counted)
+          example: 3
+        latitude:
+          type: number
+          format: double
+          description: Latitude of observation location
+          example: 40.7829
+        longitude:
+          type: number
+          format: double
+          description: Longitude of observation location
+          example: -73.9654
+        isValid:
+          type: boolean
+          description: Whether the observation is valid
+          example: true
+        isReviewed:
+          type: boolean
+          description: Whether the observation has been reviewed
+          example: true
+        isLocationPrivate:
+          type: boolean
+          description: Whether the exact location is private
+          example: false
+        submissionId:
+          type: string
+          description: Checklist submission ID
+          example: "S123456789"
+
+    TaxonomyEntry:
+      type: object
+      required:
+        - speciesCode
+        - commonName
+        - scientificName
+        - category
+        - taxonOrder
+        - bandingCodes
+        - comNameCodes
+        - sciNameCodes
+      properties:
+        speciesCode:
+          type: string
+          description: eBird species code
+          example: "norcar"
+        commonName:
+          type: string
+          description: Common name
+          example: "Northern Cardinal"
+        scientificName:
+          type: string
+          description: Scientific name
+          example: "Cardinalis cardinalis"
+        category:
+          type: string
+          description: Taxonomic category
+          example: "species"
+        taxonOrder:
+          type: number
+          description: Taxonomic order for sorting
+          example: 32481
+        bandingCodes:
+          type: array
+          items:
+            type: string
+          description: Bird banding codes
+          example: ["NOCA"]
+        comNameCodes:
+          type: array
+          items:
+            type: string
+          description: Common name codes
+          example: ["NOCA"]
+        sciNameCodes:
+          type: array
+          items:
+            type: string
+          description: Scientific name codes
+          example: ["CACA"]
+        order:
+          type: string
+          nullable: true
+          description: Taxonomic order
+          example: "Passeriformes"
+        familyCode:
+          type: string
+          nullable: true
+          description: Family code
+          example: "cardin1"
+        familyComName:
+          type: string
+          nullable: true
+          description: Family common name
+          example: "Cardinals and Allies"
+        familySciName:
+          type: string
+          nullable: true
+          description: Family scientific name
+          example: "Cardinalidae"
+
+    TaxonomyVersion:
+      type: object
+      required:
+        - authorityVer
+        - latest
+      properties:
+        authorityVer:
+          type: number
+          description: Taxonomy version number
+          example: 2023
+        latest:
+          type: boolean
+          description: Whether this is the latest version
+          example: true
+
+    TaxaLocale:
+      type: object
+      required:
+        - code
+        - name
+        - lastUpdate
+      properties:
+        code:
+          type: string
+          description: Locale code
+          example: "en"
+        name:
+          type: string
+          description: Locale name
+          example: "English"
+        lastUpdate:
+          type: string
+          description: Last update date
+          example: "2024-01-15"
+
+    TaxonomicGroup:
+      type: object
+      required:
+        - groupName
+        - groupOrder
+        - taxonOrderBounds
+      properties:
+        groupName:
+          type: string
+          description: Group name
+          example: "Waterfowl"
+        groupOrder:
+          type: integer
+          description: Group display order
+          example: 1
+        taxonOrderBounds:
+          type: array
+          items:
+            type: array
+            items:
+              type: number
+          description: Taxon order bounds for this group
+          example: [[1, 100]]
+
+    Hotspot:
+      type: object
+      required:
+        - locId
+        - locName
+        - countryCode
+        - subnational1Code
+        - lat
+        - lng
+      properties:
+        locId:
+          type: string
+          description: Hotspot location ID
+          example: "L99381"
+        locName:
+          type: string
+          description: Hotspot name
+          example: "Central Park"
+        countryCode:
+          type: string
+          description: Country code
+          example: "US"
+        subnational1Code:
+          type: string
+          description: State/province code
+          example: "US-NY"
+        subnational2Code:
+          type: string
+          nullable: true
+          description: County/district code
+          example: "US-NY-061"
+        lat:
+          type: number
+          format: double
+          description: Latitude
+          example: 40.7829
+        lng:
+          type: number
+          format: double
+          description: Longitude
+          example: -73.9654
+        latestObsDt:
+          type: string
+          nullable: true
+          description: Date of latest observation
+          example: "2024-06-15 08:30"
+        numSpeciesAllTime:
+          type: integer
+          nullable: true
+          description: Total species observed at hotspot
+          example: 280
+
+    Region:
+      type: object
+      required:
+        - code
+        - name
+      properties:
+        code:
+          type: string
+          description: Region code
+          example: "US-NY"
+        name:
+          type: string
+          description: Region name
+          example: "New York"
+
+    RegionInfo:
+      type: object
+      required:
+        - code
+        - name
+      properties:
+        code:
+          type: string
+          description: Region code
+          example: "US-NY"
+        name:
+          type: string
+          description: Region name
+          example: "New York"
+        bounds:
+          $ref: '#/components/schemas/RegionBounds'
+
+    RegionBounds:
+      type: object
+      required:
+        - minX
+        - maxX
+        - minY
+        - maxY
+      properties:
+        minX:
+          type: number
+          format: double
+          description: Minimum longitude
+          example: -79.7624
+        maxX:
+          type: number
+          format: double
+          description: Maximum longitude
+          example: -71.8563
+        minY:
+          type: number
+          format: double
+          description: Minimum latitude
+          example: 40.4961
+        maxY:
+          type: number
+          format: double
+          description: Maximum latitude
+          example: 45.0153
+
+    RegionStats:
+      type: object
+      required:
+        - numChecklists
+        - numContributors
+        - numSpecies
+      properties:
+        numChecklists:
+          type: integer
+          description: Number of checklists submitted
+          example: 1234
+        numContributors:
+          type: integer
+          description: Number of unique contributors
+          example: 456
+        numSpecies:
+          type: integer
+          description: Number of species observed
+          example: 189
+
+    TopObserver:
+      type: object
+      required:
+        - userDisplayName
+        - numSpecies
+        - numChecklists
+        - rowNum
+        - userId
+      properties:
+        userDisplayName:
+          type: string
+          description: User's display name
+          example: "John Birder"
+        numSpecies:
+          type: integer
+          description: Number of species observed
+          example: 145
+        numChecklists:
+          type: integer
+          description: Number of checklists submitted
+          example: 23
+        rowNum:
+          type: integer
+          description: Rank position
+          example: 1
+        userId:
+          type: string
+          description: User ID
+          example: "USER123456"
+
+    ChecklistSummary:
+      type: object
+      required:
+        - subId
+        - locId
+        - userDisplayName
+        - numSpecies
+        - obsDt
+      properties:
+        subId:
+          type: string
+          description: Checklist submission ID
+          example: "S123456789"
+        locId:
+          type: string
+          description: Location ID
+          example: "L99381"
+        userDisplayName:
+          type: string
+          description: Observer's display name
+          example: "John Birder"
+        numSpecies:
+          type: integer
+          description: Number of species on checklist
+          example: 25
+        obsDt:
+          type: string
+          format: date-time
+          description: Observation date
+          example: "2024-06-15T08:30:00"
+
+    Checklist:
+      type: object
+      required:
+        - subId
+        - locId
+        - userDisplayName
+        - numSpecies
+        - obsDt
+        - obs
+      properties:
+        subId:
+          type: string
+          description: Checklist submission ID
+          example: "S123456789"
+        locId:
+          type: string
+          description: Location ID
+          example: "L99381"
+        userDisplayName:
+          type: string
+          description: Observer's display name
+          example: "John Birder"
+        numSpecies:
+          type: integer
+          description: Number of species on checklist
+          example: 25
+        obsDt:
+          type: string
+          format: date-time
+          description: Observation date
+          example: "2024-06-15T08:30:00"
+        obs:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChecklistObservation'
+          description: Observations on this checklist
+
+    ChecklistObservation:
+      type: object
+      required:
+        - speciesCode
+      properties:
+        speciesCode:
+          type: string
+          description: eBird species code
+          example: "norcar"
+        howMany:
+          type: integer
+          nullable: true
+          description: Count of individuals
+          example: 3
+
+    HealthResponse:
+      type: object
+      required:
+        - status
+        - database
+      properties:
+        status:
+          type: string
+          description: Overall health status
+          enum: [healthy, degraded]
+          example: "healthy"
+        database:
+          type: string
+          description: Database connection status
+          enum: [connected, disconnected]
+          example: "connected"
+
+    ApiError:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: "An error occurred while processing your request"
+        code:
+          type: string
+          nullable: true
+          description: Error code
+          example: "INVALID_REGION"
+
+  responses:
+    BadRequest:
+      description: Bad request - invalid parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error: "lat and lng are required and must be valid numbers"
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error: "An error occurred while processing your request"
